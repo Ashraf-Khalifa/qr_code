@@ -5,11 +5,13 @@ const app = express();
 const port = 3000;
 
 // Create a MySQL connection pool
-const pool = mysql.createPool({
-  host: "localhost",
-  user: "root",
-  password: "",
+const dbConnection = mysql.createConnection({
+  host: "db-mysql-nyc1-44248-do-user-14618823-0.b.db.ondigitalocean.com",
+  port: "25060",
+  user: "doadmin",
+  password: "123.123.",
   database: "qr",
+  ssl: true,
 });
 
 // Define a route to fetch data from the database and display only id, qr_code_url, and image columns
