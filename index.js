@@ -1,27 +1,36 @@
-const mysql = require("mysql2/promise");
+const mysql = require("mysql");
 const qr = require("qrcode");
 const fs = require("fs/promises");
 
-// Create a MySQL connection pool
+// Create a MySQL connection
 const dbConnection = mysql.createConnection({
-    host: "db-mysql-nyc1-44248-do-user-14618823-0.b.db.ondigitalocean.com",
-    port: "25060",
-    user: "doadmin",
-    password: "123.123.",
-    database: "qr",
-    ssl: true,
-  });
+  host: "db-mysql-nyc1-44248-do-user-14618823-0.b.db.ondigitalocean.com",
+  port: "25060",
+  user: "doadmin",
+  password: "123.123.",
+  database: "qr",
+  ssl: true,
+});
 
-async function fetchDataFromDatabase() {
+// const dbConnection = mysql.createConnection({
+//   host: "localhost",
+//   user: "root",
+//   password: "",
+//   database: "tanks",
+// });
+
+async function fetchDataForDisplay() {
   try {
-    // Get a connection from the pool
-    const connection = await pool.getConnection();
+    // Connect to the database
+    await dbConnection.connect();
 
-    // Query your database to retrieve the data you need
-    const [rows, fields] = await connection.query("SELECT * FROM qr_code");
+    // Query the database to retrieve id, qr_code_url, and qr_code_image columns
+    const [rows, fields] = await dbConnection.query(
+      "SELECT id, qr_code_url, qr_code_image FROM qr_code"
+    );
 
-    // Release the connection back to the pool
-    connection.release();
+    // Disconnect from the database
+    dbConnection.end();
 
     // Return the data
     return rows;
@@ -31,10 +40,11 @@ async function fetchDataFromDatabase() {
   }
 }
 
+
 async function insertDataIntoDatabase(data) {
   try {
-    // Get a connection from the pool
-    const connection = await pool.getConnection();
+    // Connect to the database
+    await dbConnection.connect();
 
     // Read the image file as a buffer
     const imageBuffer = await fs.readFile("qrcodes/qr_1.png"); // Change the path to your image
@@ -44,7 +54,7 @@ async function insertDataIntoDatabase(data) {
       "INSERT INTO qr_code (id, name, tank, description, qr_code_url, image) VALUES (?, ?, ?, ?, ?, ?)";
 
     // Execute the query with the provided data
-    const [result] = await connection.query(query, [
+    const result = await dbConnection.query(query, [
       data.id,
       data.name,
       data.tank,
@@ -53,11 +63,11 @@ async function insertDataIntoDatabase(data) {
       imageBuffer, // Add the image buffer to the data object
     ]);
 
-    // Release the connection back to the pool
-    connection.release();
+    // Disconnect from the database
+    dbConnection.end();
 
     // Return the result
-    return result;
+    return result[0]; // Access the first element of the result array
   } catch (error) {
     console.error("Error inserting data into the database:", error);
     throw error;
@@ -77,6 +87,8 @@ async function generateQRCode(description, filename) {
 }
 
 async function main() {
+  let connection; // Declare the connection variable outside the try-catch block
+
   try {
     // Example data to insert into the qr_code table, including the URL
     const dataToInsert = {
@@ -84,7 +96,7 @@ async function main() {
       name: "QR Code 1",
       tank: "Tank A",
       description: "Description for QR Code 1",
-      qr_code_url: "http://localhost:3000/qr_code_1.png", // Use your port number
+      qr_code_url: "http://localhost:3000/qr_code_1.png",
     };
 
     // Call the function to insert data into the database
@@ -93,21 +105,18 @@ async function main() {
     console.log("Data inserted successfully:", insertionResult);
 
     // Fetch data from the database after insertion
+    connection = await dbConnection.getConnection(); // Get a new connection
     const databaseData = await fetchDataFromDatabase();
     console.log("Data retrieved from the database:", databaseData);
-
-    // Generate QR codes for descriptions
-    for (const row of databaseData) {
-      await generateQRCode(row.description, `qr_${row.id}.png`);
-    }
-
-    // Optionally, you can display or serve the generated QR codes here
   } catch (error) {
     console.error("An error occurred:", error);
   } finally {
-    // Close the MySQL connection pool when done
-    pool.end();
+    if (connection) {
+      connection.release(); // Release the connection to the pool
+    }
   }
+  
 }
 
 main();
+

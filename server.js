@@ -1,10 +1,10 @@
 const express = require("express");
-const mysql = require("mysql2/promise");
+const mysql = require("mysql");
 
 const app = express();
 const port = 3000;
 
-// Create a MySQL connection pool
+// Create a MySQL connection
 const dbConnection = mysql.createConnection({
   host: "db-mysql-nyc1-44248-do-user-14618823-0.b.db.ondigitalocean.com",
   port: "25060",
@@ -14,19 +14,24 @@ const dbConnection = mysql.createConnection({
   ssl: true,
 });
 
+// Connect to the database
+dbConnection.connect((err) => {
+  if (err) {
+    console.error("Error connecting to the database:", err);
+    process.exit(1);
+  }
+  console.log("Connected to the database");
+});
+
 // Define a route to fetch data from the database and display only id, qr_code_url, and image columns
-app.get("/qr_code", async (req, res) => {
-  try {
-    // Get a connection from the pool
-    const connection = await pool.getConnection();
-
-    // Query the database to retrieve id, qr_code_url, and image columns from the qr_code table
-    const [rows] = await connection.query(
-      "SELECT id, qr_code_url FROM qr_code"
-    );
-
-    // Release the connection back to the pool
-    connection.release();
+app.get("/qr_code", (req, res) => {
+  // Query the database to retrieve id, qr_code_url, and image columns from the qr_code table
+  dbConnection.query("SELECT id, qr_code_url FROM qr_code", (error, results) => {
+    if (error) {
+      console.error("Error fetching data from the database:", error);
+      res.status(500).json({ error: "An error occurred while fetching data" });
+      return;
+    }
 
     // Render an HTML page to display the id, qr_code_url, and image columns
     const html = `
@@ -42,7 +47,7 @@ app.get("/qr_code", async (req, res) => {
             <th>qr_code_url</th>
             <th>Image</th>
           </tr>
-          ${rows
+          ${results
             .map(
               (row) => `
             <tr>
@@ -63,85 +68,72 @@ app.get("/qr_code", async (req, res) => {
     `;
 
     res.send(html);
-  } catch (error) {
-    console.error("Error fetching data from the database:", error);
-    res.status(500).json({ error: "An error occurred while fetching data" });
-  }
+  });
 });
 
 // Define a route to fetch and display the description for a specific qr_code_url
-app.get("/qr_code_url/:qr_code_url", async (req, res) => {
-  try {
-    const { qr_code_url } = req.params;
+app.get("/qr_code_url/:qr_code_url", (req, res) => {
+  const { qr_code_url } = req.params;
 
-    // Get a connection from the pool
-    const connection = await pool.getConnection();
+  // Query the database to retrieve the description for the specified qr_code_url
+  dbConnection.query(
+    "SELECT description FROM qr_code WHERE qr_code_url = ?",
+    [qr_code_url],
+    (error, results) => {
+      if (error) {
+        console.error("Error fetching data from the database:", error);
+        res.status(500).json({ error: "An error occurred while fetching data" });
+        return;
+      }
 
-    // Query the database to retrieve the description for the specified qr_code_url
-    const [rows] = await connection.query(
-      "SELECT description FROM qr_code WHERE qr_code_url = ?",
-      [qr_code_url]
-    );
+      if (results.length === 0) {
+        // If no matching QR code URL is found, return a 404 response
+        res.status(404).json({ error: "QR code URL not found" });
+      } else {
+        // Render an HTML page to display the description
+        const html = `
+          <html>
+          <head>
+            <title>QR Code Description</title>
+          </head>
+          <body>
+            <h1>QR Code Description</h1>
+            <p>${results[0].description}</p>
+          </body>
+          </html>
+        `;
 
-    // Release the connection back to the pool
-    connection.release();
-
-    if (rows.length === 0) {
-      // If no matching QR code URL is found, return a 404 response
-      res.status(404).json({ error: "QR code URL not found" });
-    } else {
-      // Render an HTML page to display the description
-      const html = `
-        <html>
-        <head>
-          <title>QR Code Description</title>
-        </head>
-        <body>
-          <h1>QR Code Description</h1>
-          <p>${rows[0].description}</p>
-        </body>
-        </html>
-      `;
-
-      res.send(html);
+        res.send(html);
+      }
     }
-  } catch (error) {
-    console.error("Error fetching data from the database:", error);
-    res.status(500).json({ error: "An error occurred while fetching data" });
-  }
+  );
 });
 
 // Define a route to display images
-app.get("/image/:id", async (req, res) => {
-  try {
-    const { id } = req.params;
+app.get("/image/:id", (req, res) => {
+  const { id } = req.params;
 
-    // Get a connection from the pool
-    const connection = await pool.getConnection();
+  // Query the database to retrieve the image data for the specified ID
+  dbConnection.query(
+    "SELECT image FROM qr_code WHERE id = ?",
+    [id],
+    (error, results) => {
+      if (error) {
+        console.error("Error fetching image data from the database:", error);
+        res.status(500).json({ error: "An error occurred while fetching image data" });
+        return;
+      }
 
-    // Query the database to retrieve the image data for the specified ID
-    const [rows] = await connection.query(
-      "SELECT image FROM qr_code WHERE id = ?",
-      [id]
-    );
-
-    // Release the connection back to the pool
-    connection.release();
-
-    if (rows.length === 0 || !rows[0].image) {
-      // If no image data is found, return a 404 response
-      res.status(404).json({ error: "Image not found" });
-    } else {
-      // Send the image data as a response with the appropriate content type
-      res.setHeader("Content-Type", "image/jpeg"); // Change the content type as needed
-      res.send(rows[0].image);
+      if (results.length === 0 || !results[0].image) {
+        // If no image data is found, return a 404 response
+        res.status(404).json({ error: "Image not found" });
+      } else {
+        // Send the image data as a response with the appropriate content type
+        res.setHeader("Content-Type", "image/jpeg"); // Change the content type as needed
+        res.send(results[0].image);
+      }
     }
-  } catch (error) {
-    console.error("Error fetching image data from the database:", error);
-    res
-      .status(500)
-      .json({ error: "An error occurred while fetching image data" });
-  }
+  );
 });
 
 // Start the server
