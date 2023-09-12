@@ -67,7 +67,7 @@ app.get("/qr_code", (req, res) => {
       </html>
     `;
 
-    res.send(html);
+    res.status(200).send(html); // Add .status(200) here
   });
 });
 
@@ -103,7 +103,7 @@ app.get("/qr_code_url/:qr_code_url", (req, res) => {
           </html>
         `;
 
-        res.send(html);
+        res.status(200).send(html); // Add .status(200) here
       }
     }
   );
@@ -130,7 +130,7 @@ app.get("/image/:id", (req, res) => {
       } else {
         // Send the image data as a response with the appropriate content type
         res.setHeader("Content-Type", "image/jpeg"); // Change the content type as needed
-        res.send(results[0].image);
+        res.status(200).send(results[0].image); // Add .status(200) here
       }
     }
   );
