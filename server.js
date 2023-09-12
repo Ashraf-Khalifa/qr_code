@@ -1,4 +1,4 @@
-require('dotenv').config(); // Load environment variables from .env file
+require("dotenv").config(); // Load environment variables from .env file
 const express = require("express");
 const mysql = require("mysql");
 
@@ -27,15 +27,19 @@ dbConnection.connect((err) => {
 // Define a route to fetch data from the database and display only id, qr_code_url, and image columns
 app.get("/qr_code", (req, res) => {
   // Query the database to retrieve id, qr_code_url, and image columns from the qr_code table
-  dbConnection.query("SELECT id, qr_code_url FROM qr_code", (error, results) => {
-    if (error) {
-      console.error("Error fetching data from the database:", error);
-      res.status(500).json({ error: "An error occurred while fetching data" });
-      return;
-    }
+  dbConnection.query(
+    "SELECT id, qr_code_url FROM qr_code",
+    (error, results) => {
+      if (error) {
+        console.error("Error fetching data from the database:", error);
+        res
+          .status(500)
+          .json({ error: "An error occurred while fetching data" });
+        return;
+      }
 
-    // Render an HTML page to display the id, qr_code_url, and image columns
-    const html = `
+      // Render an HTML page to display the id, qr_code_url, and image columns
+      const html = `
       <html>
       <head>
         <title>qr_code Table</title>
@@ -68,8 +72,9 @@ app.get("/qr_code", (req, res) => {
       </html>
     `;
 
-    res.status(200).send(html); // Add .status(200) here
-  });
+      res.status(200).send(html); // Add .status(200) here
+    }
+  );
 });
 
 // Define a route to fetch and display the description for a specific qr_code_url
@@ -83,7 +88,9 @@ app.get("/qr_code_url/:qr_code_url", (req, res) => {
     (error, results) => {
       if (error) {
         console.error("Error fetching data from the database:", error);
-        res.status(500).json({ error: "An error occurred while fetching data" });
+        res
+          .status(500)
+          .json({ error: "An error occurred while fetching data" });
         return;
       }
 
@@ -121,7 +128,9 @@ app.get("/image/:id", (req, res) => {
     (error, results) => {
       if (error) {
         console.error("Error fetching image data from the database:", error);
-        res.status(500).json({ error: "An error occurred while fetching image data" });
+        res
+          .status(500)
+          .json({ error: "An error occurred while fetching image data" });
         return;
       }
 
