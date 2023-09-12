@@ -1,8 +1,9 @@
+require('dotenv').config(); // Load environment variables from .env file
 const express = require("express");
 const mysql = require("mysql");
 
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000; // Use the PORT environment variable or default to 3000
 
 // Create a MySQL connection
 const dbConnection = mysql.createConnection({
@@ -21,18 +22,6 @@ dbConnection.connect((err) => {
     process.exit(1);
   }
   console.log("Connected to the database");
-});
-
-// Define a route for health checks
-app.get("/health", (req, res) => {
-  // Customize the health check logic according to your application's requirements
-  // You can perform checks on your database connection, dependencies, or any other critical components
-  // For example, you can check the database connection status:
-  if (dbConnection.state === "authenticated") {
-    res.status(200).send("Healthy");
-  } else {
-    res.status(500).send("Unhealthy");
-  }
 });
 
 // Define a route to fetch data from the database and display only id, qr_code_url, and image columns
