@@ -100,17 +100,16 @@ app.get("/qr_code_url/:qr_code_url", (req, res) => {
       } else {
         // Render an HTML page to display the description
         const html = `
-        <html>
-        <head>
-          <title>QR Code Description</title>
-        </head>
-        <body>
-          <h1>QR Code Description</h1>
-          <p>${description}</p>
-          <img src="data:image/jpeg;base64,${imageBuffer.toString("base64")}" alt="QR Code Image" />
-        </body>
-        </html>
-      `;
+          <html>
+          <head>
+            <title>QR Code Description</title>
+          </head>
+          <body>
+            <h1>QR Code Description</h1>
+            <p>${results[0].description}</p>
+          </body>
+          </html>
+        `;
 
         res.status(200).send(html); // Add .status(200) here
       }
