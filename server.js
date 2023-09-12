@@ -100,54 +100,19 @@ app.get("/qr_code_url/:qr_code_url", (req, res) => {
       } else {
         // Render an HTML page to display the description
         const html = `
-          <html>
-          <head>
-            <title>QR Code Description</title>
-          </head>
-          <body>
-            <h1>QR Code Description</h1>
-            <p>${results[0].description}</p>
-          </body>
-          </html>
-        `;
+        <html>
+        <head>
+          <title>QR Code Description</title>
+        </head>
+        <body>
+          <h1>QR Code Description</h1>
+          <p>${description}</p>
+          <img src="data:image/jpeg;base64,${imageBuffer.toString("base64")}" alt="QR Code Image" />
+        </body>
+        </html>
+      `;
 
         res.status(200).send(html); // Add .status(200) here
-      }
-    }
-  );
-});
-
-// Define a route to fetch a specific QR code image and its description
-app.get("/qr_code_3.png", async (req, res) => {
-  // Define the URL of the QR code you want to retrieve
-  const qr_code_url = "http://localhost:3000/qr_code_3.png"; // Change this URL as needed
-
-  // Query the database to retrieve the description and image for the specified qr_code_url
-  dbConnection.query(
-    "SELECT description, image FROM qr_code WHERE qr_code_url = ?",
-    [qr_code_url],
-    async (error, results) => {
-      if (error) {
-        console.error("Error fetching data from the database:", error);
-        res
-          .status(500)
-          .json({ error: "An error occurred while fetching data" });
-        return;
-      }
-
-      if (results.length === 0) {
-        // If no matching QR code URL is found, return a 404 response
-        res.status(404).json({ error: "QR code URL not found" });
-      } else {
-        // Get the description and image data from the results
-        const description = results[0].description;
-        const imageBuffer = results[0].image;
-
-        // Set the appropriate content type for the image
-        res.setHeader("Content-Type", "image/jpeg"); // Change the content type as needed
-
-        // Send the image data as a response
-        res.status(200).send(imageBuffer);
       }
     }
   );
@@ -174,11 +139,9 @@ app.get("/image/:id", (req, res) => {
         // If no image data is found, return a 404 response
         res.status(404).json({ error: "Image not found" });
       } else {
-        // Set the appropriate content type for the image
+        // Send the image data as a response with the appropriate content type
         res.setHeader("Content-Type", "image/jpeg"); // Change the content type as needed
-
-        // Send the image data as a response
-        res.status(200).send(results[0].image);
+        res.status(200).send(results[0].image); // Add .status(200) here
       }
     }
   );
