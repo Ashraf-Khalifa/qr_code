@@ -23,6 +23,18 @@ dbConnection.connect((err) => {
   console.log("Connected to the database");
 });
 
+// Define a route for health checks
+app.get("/health", (req, res) => {
+  // Customize the health check logic according to your application's requirements
+  // You can perform checks on your database connection, dependencies, or any other critical components
+  // For example, you can check the database connection status:
+  if (dbConnection.state === "authenticated") {
+    res.status(200).send("Healthy");
+  } else {
+    res.status(500).send("Unhealthy");
+  }
+});
+
 // Define a route to fetch data from the database and display only id, qr_code_url, and image columns
 app.get("/qr_code", (req, res) => {
   // Query the database to retrieve id, qr_code_url, and image columns from the qr_code table
