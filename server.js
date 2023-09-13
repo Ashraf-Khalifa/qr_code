@@ -81,8 +81,10 @@ app.get("/qr_code", (req, res) => {
 
 // Define a route to fetch and display the description and qr_code_image for a specific qr_code_url
 // Define a route to fetch and display the description and qr_code_image for a specific qr_code_url
+// Define a route to fetch and display the description and qr_code_image for a specific qr_code_url
 app.get("/qr_code_url/:qr_code_url", (req, res) => {
   const { qr_code_url } = req.params;
+  const showUrl = req.query.showUrl; // Check if showUrl query parameter is present
 
   // Query the database to retrieve the description and qr_code_image for the specified qr_code_url
   dbConnection.query(
@@ -105,34 +107,51 @@ app.get("/qr_code_url/:qr_code_url", (req, res) => {
         const description = results[0].description;
         const qrCodeImagePath = results[0].qr_code_image; // Get the image path from the database
 
-        // Read the image file as a buffer
-        fs.readFile(qrCodeImagePath, (imageError, imageBuffer) => {
-          if (imageError) {
-            console.error("Error reading image file:", imageError);
-            res
-              .status(500)
-              .json({ error: "An error occurred while reading image data" });
-          } else {
-            // Set the appropriate content type for the image
-            res.setHeader("Content-Type", "image/jpeg"); // Change the content type as needed
+        if (showUrl === "true") {
+          // Display the URL
+          const html = `
+            <html>
+            <head>
+              <title>QR Code URL</title>
+            </head>
+            <body>
+              <h1>QR Code URL</h1>
+              <p>${qr_code_url}</p>
+              <a href="/qr_code_url/${encodeURIComponent(qr_code_url)}?showUrl=false">Show Description</a>
+            </body>
+            </html>
+          `;
 
-            // Render an HTML page to display the description and qr_code_image
-            const html = `
-              <html>
-              <head>
-                <title>QR Code Description</title>
-              </head>
-              <body>
-                <h1>QR Code Description</h1>
-                <p>${description}</p>
-                <img src="data:image/jpeg;base64,${imageBuffer.toString('base64')}" alt="QR Code Image">
-              </body>
-              </html>
-            `;
+          res.status(200).send(html);
+        } else {
+          // Read the image file as a buffer
+          fs.readFile(qrCodeImagePath, (imageError, imageBuffer) => {
+            if (imageError) {
+              console.error("Error reading image file:", imageError);
+              res
+                .status(500)
+                .json({ error: "An error occurred while reading image data" });
+            } else {
+              // Set the appropriate content type for the image
+              res.setHeader("Content-Type", "image/jpeg"); // Change the content type as needed
 
-            res.status(200).send(html); // Add .status(200) here
-          }
-        });
+              // Render an HTML page to display the description and qr_code_image
+              const html = `
+                <html>
+                <head>
+                  <title>QR Code Description</title>
+                </head>
+                <body>
+                  <h1>QR Code Description</h1>
+                  <p>${description}</p>
+                </body>
+                </html>
+              `;
+
+              res.status(200).send(html); // Add .status(200) here
+            }
+          });
+        }
       }
     }
   );
