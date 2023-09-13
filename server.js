@@ -77,13 +77,13 @@ app.get("/qr_code", (req, res) => {
   );
 });
 
-// Define a route to fetch and display the description for a specific qr_code_url
+// Define a route to fetch and display the description and qr_code_image for a specific qr_code_url
 app.get("/qr_code_url/:qr_code_url", (req, res) => {
   const { qr_code_url } = req.params;
 
-  // Query the database to retrieve the description for the specified qr_code_url
+  // Query the database to retrieve the description and qr_code_image for the specified qr_code_url
   dbConnection.query(
-    "SELECT description FROM qr_code WHERE qr_code_url = ?",
+    "SELECT description, qr_code_image FROM qr_code WHERE qr_code_url = ?",
     [qr_code_url],
     (error, results) => {
       if (error) {
@@ -98,7 +98,11 @@ app.get("/qr_code_url/:qr_code_url", (req, res) => {
         // If no matching QR code URL is found, return a 404 response
         res.status(404).json({ error: "QR code URL not found" });
       } else {
-        // Render an HTML page to display the description
+        // Get the description and qr_code_image data from the results
+        const description = results[0].description;
+        const qrCodeImage = results[0].qr_code_image;
+
+        // Render an HTML page to display the description and qr_code_image
         const html = `
           <html>
           <head>
@@ -106,7 +110,8 @@ app.get("/qr_code_url/:qr_code_url", (req, res) => {
           </head>
           <body>
             <h1>QR Code Description</h1>
-            <p>${results[0].description}</p>
+            <p>${description}</p>
+            <img src="${qrCodeImage}" alt="QR Code Image">
           </body>
           </html>
         `;
@@ -116,6 +121,7 @@ app.get("/qr_code_url/:qr_code_url", (req, res) => {
     }
   );
 });
+
 
 // Define a route to display images
 app.get("/image/:id", (req, res) => {
