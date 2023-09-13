@@ -9,7 +9,6 @@ const port = process.env.PORT || 3000; // Use the PORT environment variable or d
 
 app.use(cookieParser());
 
-
 // Create a MySQL connection
 const dbConnection = mysql.createConnection({
   host: "db-mysql-nyc1-44248-do-user-14618823-0.b.db.ondigitalocean.com",
@@ -85,7 +84,6 @@ app.get("/qr_code", (req, res) => {
 // Define a route to fetch and display the description for a specific qr_code_url
 app.get("/qr_code_url/:qr_code_url", (req, res) => {
   const { qr_code_url } = req.params;
-  const showDescription = req.cookies.showDescription === "true"; // Check if showDescription cookie is set
 
   // Query the database to retrieve the description for the specified qr_code_url
   dbConnection.query(
@@ -104,41 +102,64 @@ app.get("/qr_code_url/:qr_code_url", (req, res) => {
         // If no matching QR code URL is found, return a 404 response
         res.status(404).json({ error: "QR code URL not found" });
       } else {
-        if (showDescription) {
-          // Display the description
-          const html = `
-            <html>
-            <head>
-              <title>QR Code Description</title>
-            </head>
-            <body>
-              <h1>QR Code Description</h1>
-              <p>${results[0].description}</p>
-            </body>
-            </html>
-          `;
+        // Render an HTML page to display "qr_code_url" within "qr_code_url"
+        const html = `
+          <html>
+          <head>
+            <title>QR Code URL</title>
+          </head>
+          <body>
+            
+            <a href="/qr_code_url/${encodeURIComponent(
+              qr_code_url
+            )}/result">http://localhost:3000/qr_code_1.png</a>
+          </body>
+          </html>
+        `;
 
-          res.status(200).send(html);
-        } else {
-          // Display the URL and set a cookie to remember the state
-          res.cookie("showDescription", "true"); // Set showDescription cookie
-          const html = `
-            <html>
-            <head>
-              <title>QR Code URL</title>
-            </head>
-            <body>
-              <h1>QR Code URL</h1>
-              <p>${qr_code_url}</p>
-              <a href="/qr_code_url/${encodeURIComponent(
-                qr_code_url
-              )}">Show Description</a>
-            </body>
-            </html>
-          `;
+        res.status(200).send(html);
+      }
+    }
+  );
+});
 
-          res.status(200).send(html);
-        }
+// Define a route to display the result for a specific qr_code_url
+app.get("/qr_code_url/:qr_code_url/result", (req, res) => {
+  const { qr_code_url } = req.params;
+
+  // Query the database to retrieve the description for the specified qr_code_url
+  dbConnection.query(
+    "SELECT description FROM qr_code WHERE qr_code_url = ?",
+    [qr_code_url],
+    (error, results) => {
+      if (error) {
+        console.error("Error fetching data from the database:", error);
+        res
+          .status(500)
+          .json({ error: "An error occurred while fetching data" });
+        return;
+      }
+
+      if (results.length === 0) {
+        // If no matching QR code URL is found, return a 404 response
+        res.status(404).json({ error: "QR code URL not found" });
+      } else {
+        // Render an HTML page to display the description
+        const description = results[0].description;
+
+        const html = `
+          <html>
+          <head>
+            <title>QR Code Description</title>
+          </head>
+          <body>
+            <h1>QR Code Description</h1>
+            <p>${description}</p>
+          </body>
+          </html>
+        `;
+
+        res.status(200).send(html);
       }
     }
   );

@@ -57,8 +57,8 @@ async function main() {
       tank: "Tank 6",
       description: "Description for QR Code 6",
       qr_code_url: "http://localhost:3000/qr_code_6.png",
-      imagePath: "./qrcodes/qr_7.png", // Replace with the actual image path
-      qr_code_image: "./qrcodes/tree-736885_1280-2.jpg", // Add the image path to qr_code_image
+      imagePath: "", // Replace with the actual image path
+      qr_code_image: "", // Add the image path to qr_code_image
     };
 
     // Call the function to generate QR code with image and text and insert data into the database
