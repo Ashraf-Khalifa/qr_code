@@ -27,18 +27,18 @@ async function generateQRCodeWithImageAndText(data) {
 
     // SQL query to insert data into the qr_code table, including the image, text, and image path
     const query =
-      "INSERT INTO qr_code (id, name, tank, description, qr_code_url, image, qr_code_image) VALUES (?, ?, ?, ?, ?, ?, ?)";
+      "INSERT INTO qr_code (id, logo, title, description, image, audio, video, qr_code_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
     // Execute the query with the provided data
     const result = await dbConnection.query(query, [
       data.id,
-      data.name,
-      data.tank,
+      data.logo,
+      data.title,
       data.description,
-      data.qr_code_url,
       imageBuffer, // Add the image buffer to the data object
-      data.imagePath, // Add the image path to the data object
-      data.qr_code_image, // Add qr_code_image to the data object
+      data.audio,  // Add the audio data to the data object
+      data.video,  // Add the video data to the data object
+      data.qr_code_url,
     ]);
 
     console.log("QR code and data inserted successfully:", result[0]);
@@ -52,13 +52,14 @@ async function main() {
   try {
     // Example data to insert into the qr_code table, including the URL and image path
     const dataToInsert = {
-      id: 24,
-      name: "QR Code 7",
-      tank: "Tank 6",
-      description: "Description for QR Code 6",
-      qr_code_url: "http://localhost:3000/qr_code_6.png",
+      id: 29,
+      logo: "./qrcodes/RTM Logo Final Jan 2018.png",
+      title: "Title 1",
+      description: "Description for QR Code 1",
       imagePath: "./qrcodes/IMG_6182-fotor-2023070321565.jpg", // Replace with the actual image path
-      qr_code_image: "./qrcodes/qr_code_with_url.png", // Add the image path to qr_code_image
+      audio: "./qrcodes/answering-machine-107318.mp3", // Add the audio path
+      video: "./qrcodes/production_id 5211959 (2160p).mp4", // Add the video path
+      qr_code_url: "http://localhost:3000/qr_code_1.png",
     };
 
     // Call the function to generate QR code with image and text and insert data into the database

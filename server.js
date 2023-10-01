@@ -126,9 +126,9 @@ app.get("/qr_code_url/:qr_code_url", (req, res) => {
 app.get("/qr_code_url/:qr_code_url/result", (req, res) => {
   const { qr_code_url } = req.params;
 
-  // Query the database to retrieve the description and image for the specified qr_code_url
+  // Query the database to retrieve the description, image, audio, and video for the specified qr_code_url
   dbConnection.query(
-    "SELECT description, image FROM qr_code WHERE qr_code_url = ?",
+    "SELECT description, image, audio, video, id FROM qr_code WHERE qr_code_url = ?",
     [qr_code_url],
     (error, results) => {
       if (error) {
@@ -143,11 +143,14 @@ app.get("/qr_code_url/:qr_code_url/result", (req, res) => {
         // If no matching QR code URL is found, return a 404 response
         res.status(404).json({ error: "QR code URL not found" });
       } else {
-        // Extract description and image data from the database results
+        // Extract data from the database results
         const description = results[0].description;
         const image = results[0].image;
+        const audio = results[0].audio;
+        const video = results[0].video;
+        const id = results[0].id;
 
-        // Render an HTML page to display the description and image
+        // Render an HTML page to display the description, image, audio, and video
         const html = `
           <html>
           <head>
@@ -156,7 +159,13 @@ app.get("/qr_code_url/:qr_code_url/result", (req, res) => {
           <body>
             <h1>QR Code Description</h1>
             <p>${description}</p>
-            <img src="/image/${results[0].id}" alt="Image for QR Code" width="200">
+            <img src="/image/${id}" alt="Image for QR Code" width="200">
+            <audio controls>
+              <source src="/audio/${id}" type="audio/mpeg"> <!-- Make sure the path is correct -->
+            </audio>
+            <video width="320" height="240" controls>
+              <source src="/video/${id}" type="video/mp4"> <!-- Make sure the path is correct -->
+            </video>
           </body>
           </html>
         `;
@@ -166,7 +175,6 @@ app.get("/qr_code_url/:qr_code_url/result", (req, res) => {
     }
   );
 });
-
 
 // Define a route to display images
 app.get("/image/:id", (req, res) => {
@@ -196,6 +204,63 @@ app.get("/image/:id", (req, res) => {
     }
   );
 });
+
+// For serving audio files
+app.get("/audio/:id", (req, res) => {
+  const { id } = req.params;
+  // Query the database to retrieve the audio data for the specified ID
+  dbConnection.query(
+    "SELECT audio FROM qr_code WHERE id = ?",
+    [id],
+    (error, results) => {
+      if (error) {
+        console.error("Error fetching audio data from the database:", error);
+        res
+          .status(500)
+          .json({ error: "An error occurred while fetching audio data" });
+        return;
+      }
+
+      if (results.length === 0 || !results[0].audio) {
+        // If no audio data is found, return a 404 response
+        res.status(404).json({ error: "Audio not found" });
+      } else {
+        // Set the correct content type for audio (e.g., audio/mpeg for MP3)
+        res.setHeader("Content-Type", "audio/mpeg"); // Adjust the content type as needed
+        res.status(200).send(results[0].audio); // Add .status(200) here
+      }
+    }
+  );
+});
+
+// For serving video files
+app.get("/video/:id", (req, res) => {
+  const { id } = req.params;
+  // Query the database to retrieve the video data for the specified ID
+  dbConnection.query(
+    "SELECT video FROM qr_code WHERE id = ?",
+    [id],
+    (error, results) => {
+      if (error) {
+        console.error("Error fetching video data from the database:", error);
+        res
+          .status(500)
+          .json({ error: "An error occurred while fetching video data" });
+        return;
+      }
+
+      if (results.length === 0 || !results[0].video) {
+        // If no video data is found, return a 404 response
+        res.status(404).json({ error: "Video not found" });
+      } else {
+        // Set the correct content type for video (e.g., video/mp4 for MP4)
+        res.setHeader("Content-Type", "video/mp4"); // Correct MIME type for MP4
+        res.status(200).send(results[0].video); // Add .status(200) here
+      }
+    }
+  );
+});
+
 
 // Start the server
 app.listen(port, () => {
