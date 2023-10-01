@@ -52,13 +52,13 @@ async function main() {
   try {
     // Example data to insert into the qr_code table, including the URL and image path
     const dataToInsert = {
-      id: 9,
+      id: 24,
       name: "QR Code 7",
       tank: "Tank 6",
       description: "Description for QR Code 6",
       qr_code_url: "http://localhost:3000/qr_code_6.png",
-      imagePath: "", // Replace with the actual image path
-      qr_code_image: "", // Add the image path to qr_code_image
+      imagePath: "./qrcodes/IMG_6182-fotor-2023070321565.jpg", // Replace with the actual image path
+      qr_code_image: "./qrcodes/qr_code_with_url.png", // Add the image path to qr_code_image
     };
 
     // Call the function to generate QR code with image and text and insert data into the database

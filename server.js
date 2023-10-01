@@ -6,7 +6,6 @@ const cookieParser = require("cookie-parser"); // Add this line
 const app = express();
 const port = process.env.PORT || 3000; // Use the PORT environment variable or default to 3000
 
-
 app.use(cookieParser());
 
 // Create a MySQL connection
@@ -127,9 +126,9 @@ app.get("/qr_code_url/:qr_code_url", (req, res) => {
 app.get("/qr_code_url/:qr_code_url/result", (req, res) => {
   const { qr_code_url } = req.params;
 
-  // Query the database to retrieve the description for the specified qr_code_url
+  // Query the database to retrieve the description and image for the specified qr_code_url
   dbConnection.query(
-    "SELECT description FROM qr_code WHERE qr_code_url = ?",
+    "SELECT description, image FROM qr_code WHERE qr_code_url = ?",
     [qr_code_url],
     (error, results) => {
       if (error) {
@@ -144,9 +143,11 @@ app.get("/qr_code_url/:qr_code_url/result", (req, res) => {
         // If no matching QR code URL is found, return a 404 response
         res.status(404).json({ error: "QR code URL not found" });
       } else {
-        // Render an HTML page to display the description
+        // Extract description and image data from the database results
         const description = results[0].description;
+        const image = results[0].image;
 
+        // Render an HTML page to display the description and image
         const html = `
           <html>
           <head>
@@ -155,6 +156,7 @@ app.get("/qr_code_url/:qr_code_url/result", (req, res) => {
           <body>
             <h1>QR Code Description</h1>
             <p>${description}</p>
+            <img src="/image/${results[0].id}" alt="Image for QR Code" width="200">
           </body>
           </html>
         `;
@@ -164,6 +166,7 @@ app.get("/qr_code_url/:qr_code_url/result", (req, res) => {
     }
   );
 });
+
 
 // Define a route to display images
 app.get("/image/:id", (req, res) => {
