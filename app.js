@@ -1,8 +1,9 @@
+require("dotenv").config(); // Load environment variables from .env file
 const express = require('express');
 const multer = require('multer');
 const mysql = require('mysql');
 const path = require('path');
-const ejs = require('ejs');
+
 
 const app = express();
 const port = process.env.PORT || 3001;
