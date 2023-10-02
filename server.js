@@ -2,6 +2,7 @@ require("dotenv").config(); // Load environment variables from .env file
 const express = require("express");
 const mysql = require("mysql");
 const cookieParser = require("cookie-parser"); // Add this line
+const path = require("path"); // Add this line
 
 const app = express();
 const port = process.env.PORT || 3000; // Use the PORT environment variable or default to 3000
@@ -26,6 +27,11 @@ dbConnection.connect((err) => {
   }
   console.log("Connected to the database");
 });
+
+// Serve static files from the 'public' directory
+const publicDir = path.join(__dirname, "public");
+app.use("/audio", express.static(path.join(publicDir, "audio")));
+app.use("/video", express.static(path.join(publicDir, "video")));
 
 // Define a route to fetch data from the database and display only id, qr_code_url, and image columns
 app.get("/qr_code", (req, res) => {
@@ -145,7 +151,7 @@ app.get("/qr_code_url/:qr_code_url/result", (req, res) => {
       } else {
         // Extract data from the database results
         const description = results[0].description;
-        const image = results[0].image;
+        const logo = results[0].logo;
         const audio = results[0].audio;
         const video = results[0].video;
         const id = results[0].id;
@@ -159,7 +165,7 @@ app.get("/qr_code_url/:qr_code_url/result", (req, res) => {
           <body>
             <h1>QR Code Description</h1>
             <p>${description}</p>
-            <img src="/image/${id}" alt="Image for QR Code" width="200">
+            <img src="/logo/${id}" alt="Image for QR Code" width="200">
             <audio controls>
               <source src="/audio/${id}" type="audio/mpeg"> <!-- Make sure the path is correct -->
             </audio>
@@ -260,7 +266,6 @@ app.get("/video/:id", (req, res) => {
     }
   );
 });
-
 
 // Start the server
 app.listen(port, () => {
