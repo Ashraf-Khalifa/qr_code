@@ -110,7 +110,7 @@ app.get('/', (req, res) => {
               <li>
               <img src="${qrCode.logo}" alt="Logo Image"><br>
                 <h2>${qrCode.title}</h2><br>
-                <p style="padding-left: 400px; padding-right: 400px;">${qrCode.description}</p><br>
+                <p style="padding-left: 50px; padding-right: 50px;">${qrCode.description}</p><br>
                 <img src="${qrCode.image}" alt="QR Code Image"><br>
                 <video controls width="300" height="200">
                   <source src="${qrCode.video_path}" type="video/mp4">
